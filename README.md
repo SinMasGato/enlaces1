@@ -1,9 +1,11 @@
 # 🚀 Router MVC Simple - Sistema de Enlaces
 
-Autor: SinMasGato
-Version del SW: PHP 8.2
-19/11/2024
+Información del Proyecto
 
+Autor: SinMasGato
+Versión: 1.0.0
+Fecha de Actualización: 19/11/2024
+Tecnología: PHP 8.2
 
 Un sistema de enrutamiento PHP moderno y eficiente con arquitectura MVC.
 
