@@ -1,42 +1,39 @@
 # 🔍 Buscador de Enlaces MVC
 ## Manual de Implementación y Documentación
 
-Autor: Fredy Magaña
-Version: PHP 8.2
-fecha:19/11/2024
+Autor: Fredy Magaña  
+Version: PHP 8.2  
+Fecha: 19/11/2024
 
-![MVC Pattern](https://raw.githubusercontent.com/yourusername/enlaces-mvc/main/docs/images/mvc-pattern.png)
+## 📑 Tabla de Contenidos
+1. [Visión General](#visión-general)
+2. [Arquitectura](#arquitectura)
+3. [Instalación](#instalación)
+4. [Componentes](#componentes)
+5. [Manual de Usuario](#manual-de-usuario)
+6. [Despliegue](#despliegue)
+7. [Mantenimiento](#mantenimiento)
 
-## Tabla de Contenidos
-- [Visión General](#visión-general)
-- [Arquitectura](#arquitectura)
-- [Instalación](#instalación)
-- [Estructura del Proyecto](#estructura-del-proyecto)
-- [Base de Datos](#base-de-datos)
-- [Guía de Desarrollo](#guía-de-desarrollo)
-- [Manual de Usuario](#manual-de-usuario)
-- [Despliegue](#despliegue)
-- [Mantenimiento](#mantenimiento)
+## 🎯 Visión General
 
-## Visión General
-
-### 🎯 Objetivo
-Implementar un buscador de enlaces modular y escalable utilizando el patrón MVC en PHP.
+### Objetivo
+Desarrollar un buscador de enlaces modular y eficiente utilizando el patrón MVC en PHP.
 
 ### ✨ Características Principales
-![Features](https://raw.githubusercontent.com/yourusername/enlaces-mvc/main/docs/images/features.png)
+```mermaid
+graph LR
+    A[Buscador MVC] --> B[🔍 Búsqueda Múltiple]
+    A --> C[📱 Interfaz Responsive]
+    A --> D[🛡️ Gestión de Errores]
+    A --> E[🏗️ Arquitectura MVC]
+```
 
-- Sistema de búsqueda múltiple
-- Interfaz responsiva con Bootstrap 5
-- Gestión de errores robusta
-- Arquitectura MVC modular
+## 🏗️ Arquitectura
 
-## Arquitectura
-
-### 📐 Diagrama de Arquitectura
+### Flujo de la Aplicación
 ```mermaid
 graph TB
-    A[Cliente] -->|HTTP Request| B[index.php]
+    A[👤 Cliente] -->|HTTP Request| B[index.php]
     B --> C[Router]
     C -->|Dispatch| D[Controllers]
     D -->|Data Request| E[Models]
@@ -45,71 +42,54 @@ graph TB
     F -->|HTML Response| A
 ```
 
-### 🗂️ Estructura del Proyecto
-
+### 📁 Estructura del Proyecto
 ```plaintext
 enlaces-mvc/
-├── 📁 assets/
-│   ├── 📁 css/
-│   ├── 📁 js/
-│   └── 📁 images/
-├── 📁 controllers/
-├── 📁 models/
-├── 📁 views/
-├── 📁 config/
-├── 📁 docs/
+├── 📂 assets/
+│   ├── 📊 css/style.css
+│   └── 📈 js/main.js
+├── 📂 controllers/
+│   ├── 🔄 Autoload.php
+│   ├── 🎮 VistaController.php
+│   └── 🎯 ResultadosController.php
+├── 📂 models/
+│   └── 💾 ModelBBDD.php
+├── 📂 views/
+│   ├── 📄 header.php
+│   ├── 🔍 buscador.php
+│   ├── 📋 resultados.php
+│   └── 📄 footer.php
 └── 📝 index.php
 ```
 
-## Instalación
+## ⚙️ Instalación
 
-### Requisitos Previos
-- PHP 7.4+
-- MySQL 5.7+
+### Requisitos
+- PHP 8.2+
+- MySQL 8.0+
 - Composer
 - Apache/Nginx
 
-### Paso a Paso
-1. Clonar repositorio:
-```bash
-git clone https://github.com/yourusername/enlaces-mvc.git
+### Base de Datos
+```mermaid
+erDiagram
+    CATEGORIA {
+        int pk_categoria PK
+        string categoria
+        string tipo
+    }
+    VINCULOS {
+        int pk_vinculo PK
+        string enlace
+        string titulo
+        int fk_categoria FK
+    }
+    CATEGORIA ||--o{ VINCULOS : contiene
 ```
 
-2. Instalar dependencias:
-```bash
-composer install
-```
+### Código Principal
 
-3. Configurar base de datos:
-```sql
-CREATE DATABASE enlaces1;
-```
-
-## Base de Datos
-
-### 📊 Diagrama ER
-![Database Schema](https://raw.githubusercontent.com/yourusername/enlaces-mvc/main/docs/images/db-schema.png)
-
-### Implementación
-```sql
-CREATE VIEW vista_enlaces AS
-SELECT 
-    v.pk_vinculo,
-    v.enlace,
-    v.titulo,
-    c.categoria,
-    c.tipo
-FROM vinculos v
-JOIN categoria c ON v.fk_categoria = c.pk_categoria;
-```
-
-## Guía de Desarrollo
-
-### 🏗️ Componentes Principales
-
-#### 1. Modelo (ModelBBDD.php)
-![Model Layer](https://raw.githubusercontent.com/yourusername/enlaces-mvc/main/docs/images/model-layer.png)
-
+#### 🔄 ModelBBDD.php
 ```php
 class ModelBBDD {
     private $conn;
@@ -119,85 +99,106 @@ class ModelBBDD {
             $this->conn = new PDO(
                 "mysql:host=localhost;dbname=enlaces1;charset=utf8",
                 "root",
-                ""
+                "",
+                [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
             );
         } catch(PDOException $e) {
             throw new Exception($e->getMessage());
         }
     }
+
+    public function getEnlacesByCategoria($categoria) {
+        $sql = "SELECT * FROM vista_enlaces WHERE categoria = ?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([$categoria]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getEnlacesByTipo($tipo) {
+        $sql = "SELECT * FROM vista_enlaces WHERE tipo = ?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([$tipo]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getEnlacesByTitulo($busqueda) {
+        $sql = "SELECT * FROM vista_enlaces WHERE titulo LIKE ?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute(['%' . $busqueda . '%']);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 ```
 
-#### 2. Controladores
-![Controller Layer](https://raw.githubusercontent.com/yourusername/enlaces-mvc/main/docs/images/controller-layer.png)
+## 👤 Manual de Usuario
 
-#### 3. Vistas
-![View Layer](https://raw.githubusercontent.com/yourusername/enlaces-mvc/main/docs/images/view-layer.png)
-
-## Manual de Usuario
-
-### 🖥️ Interfaz Principal
-![Main Interface](https://raw.githubusercontent.com/yourusername/enlaces-mvc/main/docs/images/main-interface.png)
+### Interfaz Principal
+```mermaid
+graph TB
+    A[🏠 Página Principal] --> B[Opciones de Búsqueda]
+    B --> C[📁 Por Categoría]
+    B --> D[💻 Por Lenguaje]
+    B --> E[🔤 Por Título]
+    C --> F[Resultados]
+    D --> F
+    E --> F
+```
 
 ### Funcionalidades
 
-#### 1. Búsqueda por Categoría
-![Category Search](https://raw.githubusercontent.com/yourusername/enlaces-mvc/main/docs/images/category-search.png)
+#### 1️⃣ Búsqueda por Categoría
+- Selector desplegable de categorías
+- Filtrado instantáneo
+- Visualización en tarjetas
 
-#### 2. Búsqueda por Lenguaje
-![Language Search](https://raw.githubusercontent.com/yourusername/enlaces-mvc/main/docs/images/language-search.png)
+#### 2️⃣ Búsqueda por Lenguaje
+- Filtros predefinidos
+- Resultados agrupados
+- Ordenación automática
 
-#### 3. Búsqueda por Título
-![Title Search](https://raw.githubusercontent.com/yourusername/enlaces-mvc/main/docs/images/title-search.png)
+#### 3️⃣ Búsqueda por Título
+- Campo de búsqueda en tiempo real
+- Autocompletado
+- Resaltado de coincidencias
 
-## Despliegue
+## 🚀 Despliegue
 
-### 🚀 Proceso de Despliegue
-1. Preparación del Servidor
-2. Configuración de Apache/Nginx
-3. Despliegue de Base de Datos
-4. Configuración de Seguridad
-
-### Configuración del Servidor Web
+### Configuración Apache
 ```apache
 <VirtualHost *:80>
     ServerName enlaces-mvc.local
-    DocumentRoot /var/www/enlaces-mvc/public
-    
-    <Directory /var/www/enlaces-mvc/public>
+    DocumentRoot /var/www/enlaces-mvc
+    <Directory /var/www/enlaces-mvc>
         AllowOverride All
         Require all granted
     </Directory>
 </VirtualHost>
 ```
 
-## Mantenimiento
+## 🛠️ Mantenimiento
 
-### 🔧 Tareas Comunes
-- Actualización de dependencias
-- Backup de base de datos
-- Monitoreo de logs
-- Gestión de caché
+### Monitoreo
+```mermaid
+graph LR
+    A[📊 Dashboard] --> B[💾 Base de Datos]
+    A --> C[📈 Performance]
+    A --> D[🔒 Seguridad]
+    B --> E[🔄 Backups]
+    C --> F[📝 Logs]
+```
 
-### 📈 Monitoreo
-![Monitoring Dashboard](https://raw.githubusercontent.com/yourusername/enlaces-mvc/main/docs/images/monitoring.png)
+### Tareas Periódicas
+1. 🔄 Actualización de dependencias
+2. 💾 Backup de base de datos
+3. 📝 Revisión de logs
+4. 🔒 Auditoría de seguridad
 
-## Contribuciones
-
-### 🤝 Guía de Contribución
+## 🤝 Contribuciones
 1. Fork del repositorio
-2. Crear rama de feature (`git checkout -b feature/AmazingFeature`)
-3. Commit de cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abrir Pull Request
+2. Crear rama (`feature/NuevaFuncionalidad`)
+3. Commit (`git commit -m 'Añadir nueva funcionalidad'`)
+4. Push (`git push origin feature/NuevaFuncionalidad`)
+5. Pull Request
 
-## Licencia
-Este proyecto está bajo la Licencia MIT. Ver `LICENSE` para más detalles.
-
----
-
-**Nota**: Para implementar este manual en GitHub:
-1. Crear carpeta `docs/images/` en el repositorio
-2. Subir todas las imágenes referenciadas
-3. Actualizar las rutas de las imágenes según la estructura de tu repositorio
-4. Añadir este contenido como `README.md`
+## 📜 Licencia
+MIT License - Ver archivo `LICENSE`
