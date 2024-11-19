@@ -1,26 +1,25 @@
 <?php
-
 class Router {
-    private $routes = [];
-    
-    public function get($url, $callback) {
-        $this->routes['GET'][$url] = $callback;
-    }
-    
-    public function post($url, $callback) {
-        $this->routes['POST'][$url] = $callback;
-    }
-    
-    public function dispatch() {
-        $method = $_SERVER['REQUEST_METHOD'];
-        $url = $_GET['url'] ?? '';
-        $url = trim($url, '/');
+    public function route() {
+        $controller = isset($_GET['controller']) ? $_GET['controller'] : 'ViewController';
+        $action = isset($_GET['action']) ? $_GET['action'] : 'index';
         
-        if (isset($this->routes[$method][$url])) {
-            $callback = $this->routes[$method][$url];
-            return call_user_func($callback);
+        if (!file_exists('controllers/' . $controller . '.php')) {
+            die('Controlador no encontrado');
         }
         
-        include 'views/error.php';
+        require_once 'controllers/' . $controller . '.php';
+        
+        if (!class_exists($controller)) {
+            die('Clase del controlador no existe');
+        }
+        
+        $controllerInstance = new $controller();
+        
+        if (!method_exists($controllerInstance, $action)) {
+            die('Acción no existe');
+        }
+        
+        $controllerInstance->$action();
     }
 }

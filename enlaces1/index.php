@@ -1,13 +1,20 @@
 <?php
-require_once 'controllers/Router.php';
-require_once 'config/config.php';
-require_once 'models/EnlaceModel.php';
-require_once 'controllers/EnlaceController.php';
+session_start();
+require_once './controllers/Autoload.php';
 
-$router = new Router();
-$controller = new EnlaceController();
+$controlador = isset($_GET['controller']) ? $_GET['controller'] : 'Vista';
+$action = isset($_GET['action']) ? $_GET['action'] : 'mostrar';
 
-$router->get('', [$controller, 'index']);
-$router->post('buscar', [$controller, 'buscar']);
-
-$router->dispatch();
+$controlador .= 'Controller';
+if (class_exists($controlador)) {
+    $controller = new $controlador();
+    if (method_exists($controller, $action)) {
+        $controller->$action();
+    } else {
+        $controller->mostrar();
+    }
+} else {
+    $controller = new ViewController();
+    $controller->mostrar();
+}
+?>
