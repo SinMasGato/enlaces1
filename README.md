@@ -1,132 +1,190 @@
-# Sistema de Búsqueda de Enlaces MVC 🔍
+# 🚀 Router MVC Simple - Sistema de Enlaces
 
-Sistema web de gestión y búsqueda de enlaces utilizando arquitectura MVC y PHP.
+Autor: SinMasGato
+Version del SW: PHP 8.2
+19/11/2024
 
-## 🚀 Características
 
-- Búsqueda por categorías
-- Filtrado por lenguajes de programación
-- Búsqueda por palabras en título
-- Interfaz responsiva
-- Manejo seguro de datos
+Un sistema de enrutamiento PHP moderno y eficiente con arquitectura MVC.
 
-## ⚙️ Requisitos
+![MVC Architecture](https://via.placeholder.com/800x400.png?text=MVC+Architecture)
 
-- PHP 7.4+
-- MySQL 5.7+
-- Servidor web (Apache/Nginx)
-- Composer (opcional)
+## 📑 Tabla de Contenidos
+- [Instalación](#instalación)
+- [Estructura](#estructura)
+- [Uso](#uso)
+- [Ejemplos](#ejemplos)
+- [Configuración](#configuración)
 
-## 📦 Instalación
+## 🌟 Características Principales
+- Sistema de rutas simple y potente
+- Arquitectura MVC limpia
+- URLs amigables
+- Manejo de errores elegante
+- Zero dependencias
 
-1. **Clonar repositorio**
-```bash
-git clone https://github.com/tuUsuario/enlaces-mvc.git
-cd enlaces-mvc
+## 🎯 Estructura del Proyecto
+```
+proyecto/
+├── 📁 config/
+    ├── Router.php
+│   └── config.php
+       # Configuración DB
+├── 📁 controllers/
+│   └── EnlaceController.php
+├── 📁 models/
+│   └── EnlaceModel.php
+├── 📁 views/
+│   ├── busqueda.php
+│   └── error.php
+                         # Sistema de rutas
+├── .htaccess            # Configuración Apache
+└── index.php            # Punto de entrada
 ```
 
-2. **Configurar base de datos**
+
+## ⚙️ Instalación
+
+### 1. Clonar Repositorio
+```bash
+git clone https://github.com/usuario/router-mvc.git
+cd router-mvc
+```
+
+### 2. Configurar Apache (.htaccess)
+```apache
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
+```
+
+### 3. Configurar Base de Datos
 ```php
 // config/config.php
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'enlaces1');
+define('DB_NAME', 'enlaces');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 ```
 
-3. **Importar estructura**
-```sql
-CREATE DATABASE enlaces1;
-USE enlaces1;
+![Installation Steps](https://via.placeholder.com/800x400.png?text=Installation+Steps)
 
--- Crear vista
-CREATE VIEW vista_enlaces AS
-SELECT 
-    v.pk_vinculo,
-    v.enlace,
-    v.titulo,
-    v.fk_categoria,
-    c.categoria,
-    c.tipo
-FROM vinculos v
-JOIN categoria c ON v.fk_categoria = c.pk_categoria;
-```
+## 📝 Uso del Router
 
-## 🏗️ Estructura MVC
-
-```
-enlaces-mvc/
-├── config/
-│   └── config.php
-├── controllers/
-│   └── EnlaceController.php
-├── models/
-│   └── EnlaceModel.php
-├── views/
-│   ├── busqueda.php
-│   └── error.php
-└── index.php
-```
-
-## 💻 Uso
-
-1. **Modelo (EnlaceModel.php)**
+### Definir Rutas (index.php)
 ```php
-// Implementa conexión y consultas
-$model = new EnlaceModel();
-$enlaces = $model->buscarPorCategoria('PHP');
-```
-
-2. **Controlador (EnlaceController.php)**
-```php
-// Gestiona lógica de negocio
+$router = new Router();
 $controller = new EnlaceController();
-$controller->buscar();
+
+// Rutas GET
+$router->get('', [$controller, 'index']);
+$router->get('enlaces', [$controller, 'listar']);
+
+// Rutas POST
+$router->post('buscar', [$controller, 'buscar']);
 ```
 
-3. **Vista (busqueda.php)**
+### Ejemplo de Controlador
 ```php
-// Muestra interfaz de usuario
-include 'views/busqueda.php';
+class EnlaceController {
+    private $model;
+
+    public function __construct() {
+        $this->model = new EnlaceModel();
+    }
+
+    public function index() {
+        // Lógica página principal
+        require 'views/index.php';
+    }
+    
+    public function buscar() {
+        $termino = $_POST['busqueda'] ?? '';
+        $resultados = $this->model->buscar($termino);
+        require 'views/resultados.php';
+    }
+}
 ```
 
-## 🔐 Seguridad
+![Router Usage](https://via.placeholder.com/800x400.png?text=Router+Usage)
 
-- Uso de PDO con consultas preparadas
-- Escape de salidas HTML
-- Validación de entradas
-- Manejo estructurado de errores
+## 🎯 Ejemplos de Uso
 
-## 🎨 Frontend
-
-- Bootstrap 5
-- Font Awesome 6
-- JavaScript para interactividad
-- Diseño responsivo
-
-## 📝 Contribución
-
-1. Fork el proyecto
-2. Cree su rama de características
-```bash
-git checkout -b feature/AmazingFeature
+### 1. Página Principal
+```php
+// URL: /
+$router->get('', [$controller, 'index']);
 ```
-3. Commit sus cambios
-```bash
-git commit -m 'Add: nueva característica'
+
+### 2. Búsqueda
+```php
+// URL: /buscar (POST)
+$router->post('buscar', [$controller, 'buscar']);
 ```
-4. Push a la rama
-```bash
-git push origin feature/AmazingFeature
+
+### 3. Ver Enlaces por Categoría
+```php
+// URL: /categoria/php
+$router->get('categoria/{id}', [$controller, 'categoria']);
 ```
-5. Abra un Pull Request
+
+![Usage Examples](https://via.placeholder.com/800x400.png?text=Usage+Examples)
+
+## ⚡ Características Avanzadas
+
+### Manejo de Errores
+```php
+// views/404.php
+<!DOCTYPE html>
+<html>
+<head>
+    <title>404 - No Encontrado</title>
+</head>
+<body>
+    <h1>Página no encontrada</h1>
+</body>
+</html>
+```
+
+### Middleware (opcional)
+```php
+$router->middleware('auth', function() {
+    // Verificar autenticación
+});
+```
+
+![Advanced Features](https://via.placeholder.com/800x400.png?text=Advanced+Features)
+
+## 📊 Diagrama de Flujo
+```mermaid
+graph TD
+    A[Request] --> B{Router}
+    B --> C[Controller]
+    C --> D[Model]
+    D --> E[Database]
+    C --> F[View]
+    F --> G[Response]
+```
+
+## 🛠️ Requisitos
+- PHP 7.4+
+- Apache/Nginx
+- mod_rewrite habilitado
+- MySQL 5.7+
 
 ## 📜 Licencia
+Este proyecto está bajo la Licencia MIT. Ver el archivo [LICENSE](LICENSE) para más detalles.
 
-Distribuido bajo la Licencia MIT. Ver `LICENSE` para más información.
+## 👥 Contribución
+1. Fork el proyecto
+2. Crea tu rama de características (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add: nueva característica'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
 
-## 📞 Contacto
+## 📞 Soporte
+- Email: sejodiotodoportuculpa@gmail.com
 
-Tu Nombre - [@tuTwitter](https://twitter.com/tuTwitter)
-
-Link del proyecto: [https://github.com/tuUsuario/enlaces-mvc](https://github.com/tuUsuario/enlaces-mvc)
+---
+⭐️ ¡Si te gusta este proyecto, dale una estrella en GitHub! ⭐️
