@@ -1,192 +1,191 @@
-# 🚀 Router MVC Simple - Sistema de Enlaces
+# Buscador de Enlaces - Manual de Implementación MVC
 
-Información del Proyecto
+Autor: Fredy Magaña
+Version: PHP 8.2
+Fecha:19/11/2024
 
-Autor: SinMasGato
-Versión: 1.0.0
-Fecha de Actualización: 19/11/2024
-Tecnología: PHP 8.2
+![Estructura MVC](https://www.patterns.dev/img/mvc/mvc.png)
 
-Un sistema de enrutamiento PHP moderno y eficiente con arquitectura MVC.
+## 📋 Índice
+1. [Introducción](#introducción)
+2. [Estructura del Proyecto](#estructura-del-proyecto)
+3. [Base de Datos](#base-de-datos)
+4. [Implementación Paso a Paso](#implementación-paso-a-paso)
+5. [Guía de Usuario](#guía-de-usuario)
+6. [Consideraciones Técnicas](#consideraciones-técnicas)
 
-![MVC Architecture](https://via.placeholder.com/800x400.png?text=MVC+Architecture)
+## 🎯 Introducción
 
-## 📑 Tabla de Contenidos
-- [Instalación](#instalación)
-- [Estructura](#estructura)
-- [Uso](#uso)
-- [Ejemplos](#ejemplos)
-- [Configuración](#configuración)
+Este proyecto implementa un buscador de enlaces utilizando el patrón MVC (Modelo-Vista-Controlador) en PHP. Permite realizar búsquedas por categorías, lenguajes de programación y palabras clave en títulos.
 
-## 🌟 Características Principales
-- Sistema de rutas simple y potente
-- Arquitectura MVC limpia
-- URLs amigables
-- Manejo de errores elegante
-- Zero dependencias
+### Características Principales
+- Búsqueda por categorías
+- Filtrado por lenguajes de programación
+- Búsqueda por palabras clave
+- Interfaz responsiva
+- Gestión de errores
 
-## 🎯 Estructura del Proyecto
+## 📂 Estructura del Proyecto
+
 ```
-proyecto/
-├── 📁 config/
-    ├── Router.php
-│   └── config.php
-       # Configuración DB
-├── 📁 controllers/
-│   └── EnlaceController.php
-├── 📁 models/
-│   └── EnlaceModel.php
-├── 📁 views/
-│   ├── busqueda.php
-│   └── error.php
-                         # Sistema de rutas
-├── .htaccess            # Configuración Apache
-└── index.php            # Punto de entrada
+enlaces1/
+├── assets/
+│   └── css/
+│       └── style.css
+├── controllers/
+│   ├── Autoload.php
+│   ├── ResultadosController.php
+│   └── VistaController.php
+├── models/
+│   └── ModelBBDD.php
+├── views/
+│   ├── buscador.php
+│   ├── footer.php
+│   ├── header.php
+│   └── resultados.php
+└── index.php
 ```
 
+## 💾 Base de Datos
 
-## ⚙️ Instalación
+### Estructura de la Vista
+```sql
+CREATE VIEW vista_enlaces AS
+SELECT v.pk_vinculo,
+       v.enlace,
+       v.titulo,
+       v.fk_categoria,
+       c.categoria,
+       c.tipo
+FROM vinculos v
+JOIN categoria c ON v.fk_categoria = c.pk_categoria;
+```
 
-### 1. Clonar Repositorio
+## 🛠️ Implementación Paso a Paso
+
+### 1. Configuración Inicial
+
+1.1. Crear la estructura de directorios:
 ```bash
-git clone https://github.com/usuario/router-mvc.git
-cd router-mvc
+mkdir -p enlaces1/{assets/css,controllers,models,views}
 ```
 
-### 2. Configurar Apache (.htaccess)
-```apache
-RewriteEngine On
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
-```
+1.2. Configurar la base de datos:
+- Crear la base de datos `enlaces1`
+- Importar las tablas `categoria` y `vinculos`
+- Crear la vista `vista_enlaces`
 
-### 3. Configurar Base de Datos
+### 2. Modelo (Model)
+
+`models/ModelBBDD.php`:
 ```php
-// config/config.php
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'enlaces');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-```
-
-![Installation Steps](https://via.placeholder.com/800x400.png?text=Installation+Steps)
-
-## 📝 Uso del Router
-
-### Definir Rutas (index.php)
-```php
-$router = new Router();
-$controller = new EnlaceController();
-
-// Rutas GET
-$router->get('', [$controller, 'index']);
-$router->get('enlaces', [$controller, 'listar']);
-
-// Rutas POST
-$router->post('buscar', [$controller, 'buscar']);
-```
-
-### Ejemplo de Controlador
-```php
-class EnlaceController {
-    private $model;
-
+class ModelBBDD {
+    private $conn;
+    
     public function __construct() {
-        $this->model = new EnlaceModel();
-    }
-
-    public function index() {
-        // Lógica página principal
-        require 'views/index.php';
+        try {
+            $this->conn = new PDO(
+                "mysql:host=localhost;dbname=enlaces1;charset=utf8",
+                "root",
+                ""
+            );
+            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        } catch(PDOException $e) {
+            echo "Error de conexión: " . $e->getMessage();
+        }
     }
     
-    public function buscar() {
-        $termino = $_POST['busqueda'] ?? '';
-        $resultados = $this->model->buscar($termino);
-        require 'views/resultados.php';
+    // Métodos de consulta...
+}
+```
+
+### 3. Vistas (Views)
+
+Las vistas utilizan Bootstrap 5 para el diseño responsivo:
+
+`views/header.php`:
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Buscador de Enlaces</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="./assets/css/style.css" rel="stylesheet">
+</head>
+<body>
+```
+
+### 4. Controladores (Controllers)
+
+`controllers/VistaController.php`:
+```php
+class VistaController {
+    public function mostrar() {
+        $modelo = new ModelBBDD();
+        $categorias = $modelo->getCategorias();
+        $tipos = $modelo->getTipos();
+        
+        require_once './views/header.php';
+        require_once './views/buscador.php';
+        require_once './views/footer.php';
     }
 }
 ```
 
-![Router Usage](https://via.placeholder.com/800x400.png?text=Router+Usage)
+## 👤 Guía de Usuario
 
-## 🎯 Ejemplos de Uso
+### Pantalla Principal
+![Pantalla Principal](https://via.placeholder.com/800x400.png?text=Pantalla+Principal)
 
-### 1. Página Principal
-```php
-// URL: /
-$router->get('', [$controller, 'index']);
-```
+1. **Búsqueda por Categoría**
+   - Seleccionar una categoría del desplegable
+   - Hacer clic en "Buscar"
 
-### 2. Búsqueda
-```php
-// URL: /buscar (POST)
-$router->post('buscar', [$controller, 'buscar']);
-```
+2. **Búsqueda por Tipo**
+   - Seleccionar un tipo (LENGUAJE, FRAMEWORK, etc.)
+   - Hacer clic en "Buscar"
 
-### 3. Ver Enlaces por Categoría
-```php
-// URL: /categoria/php
-$router->get('categoria/{id}', [$controller, 'categoria']);
-```
+3. **Búsqueda por Título**
+   - Ingresar palabra clave
+   - Hacer clic en "Buscar"
 
-![Usage Examples](https://via.placeholder.com/800x400.png?text=Usage+Examples)
+### Resultados de Búsqueda
+![Resultados](https://via.placeholder.com/800x400.png?text=Resultados)
 
-## ⚡ Características Avanzadas
+Los resultados se muestran en tarjetas que incluyen:
+- Título del enlace
+- Categoría
+- Tipo
+- Botón para visitar el enlace
 
-### Manejo de Errores
-```php
-// views/404.php
-<!DOCTYPE html>
-<html>
-<head>
-    <title>404 - No Encontrado</title>
-</head>
-<body>
-    <h1>Página no encontrada</h1>
-</body>
-</html>
-```
+## 🔧 Consideraciones Técnicas
 
-### Middleware (opcional)
-```php
-$router->middleware('auth', function() {
-    // Verificar autenticación
-});
-```
+### Requisitos del Sistema
+- PHP 7.4 o superior
+- MySQL 5.7 o superior
+- PDO PHP Extension
+- mod_rewrite habilitado (Apache)
 
-![Advanced Features](https://via.placeholder.com/800x400.png?text=Advanced+Features)
+### Seguridad
+- Uso de PDO para prevenir SQL Injection
+- Escape de datos HTML
+- Validación de entradas
 
-## 📊 Diagrama de Flujo
-```mermaid
-graph TD
-    A[Request] --> B{Router}
-    B --> C[Controller]
-    C --> D[Model]
-    D --> E[Database]
-    C --> F[View]
-    F --> G[Response]
-```
+### Rendimiento
+- Consultas SQL optimizadas
+- Carga de recursos minimizada
+- Caché de consultas frecuentes
 
-## 🛠️ Requisitos
-- PHP 7.4+
-- Apache/Nginx
-- mod_rewrite habilitado
-- MySQL 5.7+
+## 🤝 Contribuciones
 
-## 📜 Licencia
-Este proyecto está bajo la Licencia MIT. Ver el archivo [LICENSE](LICENSE) para más detalles.
+Para contribuir al proyecto:
+1. Fork del repositorio
+2. Crear rama para nueva característica
+3. Commit de cambios
+4. Push a la rama
+5. Crear Pull Request
 
-## 👥 Contribución
-1. Fork el proyecto
-2. Crea tu rama de características (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add: nueva característica'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
+## 📝 Licencia
 
-## 📞 Soporte
-- Email: sejodiotodoportuculpa@gmail.com
-
----
-⭐️ ¡Si te gusta este proyecto, dale una estrella en GitHub! ⭐️
+Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
